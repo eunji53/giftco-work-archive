@@ -3,9 +3,9 @@
 - 대상: 401 수신 통화 (외부 고객 → 상담원) — DIRECTION 설정으로 발신/전체도 가능
 - STT: faster-whisper small (로컬)
 - 분류: Ollama qwen2.5:3b (로컬)
-- 실행: python analyze_inbound_calls.py
+- 실행: scripts/ 폴더 안에서 python analyze_inbound_calls.py
 - 중단 후 재시작: 동일 명령어 재실행 (체크포인트 자동 복원)
-- 01_analyze_inbound_calls.ipynb와 같은 데이터 폴더(data/inbound/)를 공유합니다.
+- notebooks/01_analyze_inbound_calls.ipynb와 같은 데이터 폴더(../data/inbound/)를 공유합니다.
   노트북에서 소량 테스트 후, 전체 배치는 이 스크립트로 실행하는 용도입니다.
 """
 
@@ -32,11 +32,11 @@ if not VOICE_NAS_PATH:
         r"NAS 상의 통화 녹음 폴더 경로(예: \\NAS서버\mslab\DCS)를 .env에 넣어주세요."
     )
 
-DATA_DIR = Path(__file__).parent / "data/inbound"
+DATA_DIR = Path(__file__).parent / "../data/inbound"
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 # 수신+발신 전체 메타데이터라 inbound/outbound 공용 위치(data/ 바로 아래)에 저장 (01 노트북과 동일 파일 공유)
-METADATA_CSV = Path(__file__).parent / "data/call_metadata.csv"
+METADATA_CSV = Path(__file__).parent / "../data/call_metadata.csv"
 CHECKPOINT_FILE = DATA_DIR / "inbound_call_checkpoint.json"
 OUTPUT_CSV = DATA_DIR / "inbound_call_classification.csv"
 OUTPUT_JSON = DATA_DIR / "inbound_call_classification.json"
