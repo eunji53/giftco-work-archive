@@ -31,6 +31,10 @@ projects/giftco-order-processing/goryeogift/incomplete_orders.csv
 # 로컬 절대경로가 담긴 설정 파일 — config.example.py를 복사해서 사용 (giftco-order-processing/goryeogift)
 projects/giftco-order-processing/goryeogift/config.py
 
+# 이메일에서 추출한 실제 발주서 첨부파일/체크포인트 (giftco-order-processing/email-attachments)
+projects/giftco-order-processing/email-attachments/attachments/
+projects/giftco-order-processing/email-attachments/pop_checkpoint.json
+
 # 에디터/툴 캐시
 .claude/
 .playwright-mcp/
