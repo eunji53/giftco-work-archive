@@ -1,0 +1,40 @@
+# 자격증명/환경변수
+.env
+.env.*
+!.env.example
+
+# 대용량/빌드 산출물
+*.zip
+*.exe
+node_modules/
+__pycache__/
+*.pyc
+
+# 노트북 실행 캐시
+.ipynb_checkpoints/
+
+# 데이터/결과물 (프로젝트별로 필요 시 !패턴으로 예외 지정)
+*.pkl
+*.wav
+*.mp4
+# 크롤링 결과 엑셀 — 공급사 연락처/사업자번호 등 개인정보·업체정보 포함 가능 (giftco-supplier 등)
+*.xlsx
+# 실행 시 생성되는 로컬 설정 파일 — 사용자 PC의 절대경로가 담김 (giftco-supplier viewer)
+supplier_product_viewer_config.json
+# 통화 녹음 분석 결과 — 실제 고객 통화 전사문/요약/QA 포함 (voice-data-pipeline)
+projects/voice-data-pipeline/data/
+projects/voice-data-pipeline/output/
+
+# 고려기프트 발주 수집 — 실행 시 생성되는 로컬 상태/결과 파일 (giftco-order-processing/goryeogift)
+projects/giftco-order-processing/goryeogift/progress_checkpoint.json
+projects/giftco-order-processing/goryeogift/incomplete_orders.csv
+# 로컬 절대경로가 담긴 설정 파일 — config.example.py를 복사해서 사용 (giftco-order-processing/goryeogift)
+projects/giftco-order-processing/goryeogift/config.py
+
+# 에디터/툴 캐시
+.claude/
+.playwright-mcp/
+
+# OS
+.DS_Store
+Thumbs.db
