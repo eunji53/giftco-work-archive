@@ -1,0 +1,18 @@
+# STT 결과물 (회의 내용은 민감정보일 수 있어 커밋하지 않음)
+output/
+
+# 오디오 원본 (용량이 크고, 이 저장소가 관리 대상이 아님)
+*.m4a
+*.mp3
+*.wav
+*.mp4
+*.aac
+*.flac
+*.ogg
+*.wma
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
