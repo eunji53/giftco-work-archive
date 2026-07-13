@@ -52,21 +52,48 @@ def load_model(model_size: str, device: str, compute_type: str) -> WhisperModel:
     return WhisperModel(model_size, device=device, compute_type=compute_type)
 
 
+REPEAT_THRESHOLD = 3  # 동일 문장이 이 횟수 이상 연속되면 반복(hallucination)으로 간주
+
+
+def collapse_repeats(segments: list[tuple[str, str, str]], threshold: int = REPEAT_THRESHOLD) -> list[str]:
+    """무음/잡음 구간에서 모델이 같은 문장을 반복 생성하는 현상을 한 줄로 압축한다."""
+    lines = []
+    i = 0
+    n = len(segments)
+    while i < n:
+        start, end, text = segments[i]
+        j = i
+        while j + 1 < n and segments[j + 1][2] == text:
+            j += 1
+        run_len = j - i + 1
+        if run_len >= threshold:
+            last_end = segments[j][1]
+            lines.append(f"[{start} - {last_end}] {text}  [반복 감지 {run_len}회 - 확인 필요]")
+        else:
+            for k in range(i, j + 1):
+                s, e, t = segments[k]
+                lines.append(f"[{s} - {e}] {t}")
+        i = j + 1
+    return lines
+
+
 def transcribe_file(model: WhisperModel, path: Path, language: str) -> str:
     segments, info = model.transcribe(
         str(path),
         language=language,
         beam_size=5,
         vad_filter=True,
+        condition_on_previous_text=False,
+        repetition_penalty=1.2,
+        no_repeat_ngram_size=3,
     )
     print(f"  감지 언어: {info.language} (확률 {info.language_probability:.2f})")
 
-    lines = []
-    for seg in segments:
-        start = format_timestamp(seg.start)
-        end = format_timestamp(seg.end)
-        lines.append(f"[{start} - {end}] {seg.text.strip()}")
-    return "\n".join(lines)
+    raw = [
+        (format_timestamp(seg.start), format_timestamp(seg.end), seg.text.strip())
+        for seg in segments
+    ]
+    return "\n".join(collapse_repeats(raw))
 
 
 def main():
