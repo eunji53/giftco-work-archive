@@ -23,6 +23,10 @@ pip install -r requirements.txt
 
 ### 쉘 스크립트로 실행 (권장)
 
+사용하는 셸에 맞는 스크립트를 실행하세요. 셋 다 같은 동작을 하는 래퍼입니다.
+
+**Git Bash / WSL** (`transcribe.sh`)
+
 ```bash
 # 파일 하나
 ./scripts/transcribe.sh "/c/Users/USER/Desktop/회의녹음.m4a"
@@ -37,7 +41,21 @@ pip install -r requirements.txt
 ./scripts/transcribe.sh "회의녹음.m4a" --model medium --language ko
 ```
 
-Windows에서는 Git Bash(또는 WSL)에서 실행하세요.
+**PowerShell** (`transcribe.ps1`)
+
+```powershell
+.\scripts\transcribe.ps1 ".\data\회의녹음.m4a"
+.\scripts\transcribe.ps1 ".\data\회의녹음.m4a" --model medium --language ko
+```
+
+**cmd.exe** (`transcribe.bat`)
+
+```bat
+scripts\transcribe.bat ".\data\회의녹음.m4a"
+scripts\transcribe.bat ".\data\회의녹음.m4a" --model medium --language ko
+```
+
+cmd.exe에서는 `./` 접두사를 쓰지 마세요(`.`을 명령어로 인식해 오류가 납니다). `scripts\...` 또는 `scripts/...`처럼 접두사 없이 실행하면 됩니다.
 
 ### 파이썬 스크립트 직접 실행
 
