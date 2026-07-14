@@ -48,3 +48,25 @@
   - 결과물: `attachments/` (첨부파일), `order_mail_list.xlsx` (메일 목록)
 
 **진행 상태**: 첨부파일 추출까지 완료. 추출된 첨부파일을 실제 발주서 데이터로 정리하는 다음 단계는 별도로 진행됨(타 담당자). 향후 TODO — 첨부파일 없이 본문에만 "발주" 관련 텍스트가 있는 메일도 캡처해서 추출하는 방법 검토 필요.
+
+### `sarang87/`
+
+판촉사랑(87sarang.com)에서 납품사례를 크롤링하고, 기존에 수작업으로 모아둔 거래데이터와 대조해 구매처명을 복원하는 파이프라인.
+
+- `scripts/01_crawl_supply_cases.py` — 운영용 크롤링 진입점(`def main()`). 실제 로직은 `crawler/` 패키지에 있음
+  - `crawler/config.py` — URL/파일명/헤더/기능 플래그 등 설정
+  - `crawler/parsing_utils.py` — 텍스트·가격·카테고리 파싱 공통 유틸
+  - `crawler/checkpoint_io.py` — 체크포인트/에러로그 파일 입출력
+  - `crawler/fetch.py` — requests + Selenium 페이지 요청
+  - `crawler/list_page.py`, `crawler/detail_page.py` — 목록/상세페이지 파싱
+  - `crawler/excel_export.py` — 체크포인트 결과를 엑셀로 저장
+  - `crawler/collector.py` — 위 모듈을 엮는 1단계(목록)/2단계(상세) 수집 오케스트레이션
+  - `crawler/logging_setup.py` — 콘솔(페이지 단위 진행상황 + 경고/오류만)과 파일(`output/crawl.log`, 상품 단위 상세 로그) 로깅 분리 설정
+  - 결과물: `crawl_result.xlsx`, `list_checkpoint.csv`, `detail_checkpoint.csv/xlsx`, `output/crawl.log` (전부 gitignore 대상)
+- `02_match_buyer_names.py` — 운영용 매칭 스크립트. 크롤링 결과와 `data/transaction_data_merged.xlsx`(기존 거래데이터)를 구매처분류(중/소) → 날짜 → 상품명(완전일치 → exact 정규화 → relaxed 정규화 → KR-SBERT 유사도) 순서로 1:1 매칭해 구매처명을 복원
+  - GPU(CUDA) 필요 (`REQUIRE_CUDA_GPU = True`)
+  - 결과물: `buyer_name_matched.xlsx`
+- `data/` — 입력 데이터 (전부 gitignore 대상, 로컬에 직접 채워야 함)
+  - `supply_case_template.xlsx` — 크롤링 결과 엑셀 서식 기준 파일
+  - `transaction_data_merged.xlsx` — 기존에 수작업으로 수집한 거래데이터(6만여 건) 병합본
+  - `category_reference.xlsx` — 상품분류(대/중/소) 보정용 매핑표
