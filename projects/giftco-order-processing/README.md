@@ -62,6 +62,7 @@
   - `crawler/excel_export.py` — 체크포인트 결과를 엑셀로 저장
   - `crawler/collector.py` — 위 모듈을 엮는 1단계(목록)/2단계(상세) 수집 오케스트레이션
   - `crawler/logging_setup.py` — 콘솔(페이지 단위 진행상황 + 경고/오류만)과 파일(`output/crawl.log`, 상품 단위 상세 로그) 로깅 분리 설정
+  - 로직 검증/디버그는 `notebooks/01_crawl_supply_cases_test.ipynb`를 사용
   - 결과물: `crawl_result.xlsx`, `list_checkpoint.csv`, `detail_checkpoint.csv/xlsx`, `output/crawl.log` (전부 gitignore 대상)
 - `scripts/02_match_buyer_names.py` — 운영용 매칭 진입점. 크롤링 결과와 `data/transaction_data_merged.xlsx`(기존 거래데이터)를 구매처분류(중/소) → 날짜 → 상품명(완전일치 → exact 정규화 → relaxed 정규화 → KR-SBERT 유사도) 순서로 1:1 매칭해 구매처명을 복원. 실제 로직은 `matcher/` 패키지에 있음
   - `matcher/config.py` — 파일 경로/매칭 조건/BERT 설정 등 전체 설정값
@@ -70,6 +71,7 @@
   - `matcher/bert.py` — CUDA 환경 점검, KR-SBERT 임베딩 계산·캐시(`output/embedding_cache.pkl`), 상품명 유사도 매칭
   - `matcher/category_fix.py` — `data/category_reference.xlsx` 기준 상품분류(대/중/소) 보정
   - `matcher/logging_setup.py` — 콘솔과 `output/match.log` 파일에 동시 기록하는 `log()` 헬퍼
+  - 로직 검증/디버그는 `notebooks/02_match_buyer_names_test.ipynb`(같은 로직이 셀 안에 그대로 들어있음)를 사용하고, 실제 운영 실행은 `scripts/02_match_buyer_names.py`로 함
   - GPU(CUDA) 필요 (`REQUIRE_CUDA_GPU = True`)
   - 결과물: `output/buyer_name_matched.xlsx`(매칭 결과), `output/match.log`(실행 로그), `output/embedding_cache.pkl`(BERT 임베딩 캐시, 전부 gitignore 대상)
 - `data/` — 입력 데이터 (전부 gitignore 대상, 로컬에 직접 채워야 함)
