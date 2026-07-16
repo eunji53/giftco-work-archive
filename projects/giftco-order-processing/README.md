@@ -63,10 +63,23 @@
   - `crawler/collector.py` — 위 모듈을 엮는 1단계(목록)/2단계(상세) 수집 오케스트레이션
   - `crawler/logging_setup.py` — 콘솔(페이지 단위 진행상황 + 경고/오류만)과 파일(`output/crawl.log`, 상품 단위 상세 로그) 로깅 분리 설정
   - 결과물: `crawl_result.xlsx`, `list_checkpoint.csv`, `detail_checkpoint.csv/xlsx`, `output/crawl.log` (전부 gitignore 대상)
-- `02_match_buyer_names.py` — 운영용 매칭 스크립트. 크롤링 결과와 `data/transaction_data_merged.xlsx`(기존 거래데이터)를 구매처분류(중/소) → 날짜 → 상품명(완전일치 → exact 정규화 → relaxed 정규화 → KR-SBERT 유사도) 순서로 1:1 매칭해 구매처명을 복원
+- `scripts/02_match_buyer_names.py` — 운영용 매칭 진입점. 크롤링 결과와 `data/transaction_data_merged.xlsx`(기존 거래데이터)를 구매처분류(중/소) → 날짜 → 상품명(완전일치 → exact 정규화 → relaxed 정규화 → KR-SBERT 유사도) 순서로 1:1 매칭해 구매처명을 복원. 실제 로직은 `matcher/` 패키지에 있음
+  - `matcher/config.py` — 파일 경로/매칭 조건/BERT 설정 등 전체 설정값
+  - `matcher/normalize.py` — 텍스트·상품명·분류명 정규화, 날짜 파싱, 컬럼 자동탐색 유틸
+  - `matcher/category_exceptions.py` — 구매처분류(중/소)가 판촉사랑·거래데이터 간에 이름이 다르게 붙은 경우의 예외 매핑 (예: 전시회/박람회 ↔ 기념행사별, 관광지 ↔ 골프관련)
+  - `matcher/bert.py` — CUDA 환경 점검, KR-SBERT 임베딩 계산·캐시(`output/embedding_cache.pkl`), 상품명 유사도 매칭
+  - `matcher/category_fix.py` — `data/category_reference.xlsx` 기준 상품분류(대/중/소) 보정
+  - `matcher/logging_setup.py` — 콘솔과 `output/match.log` 파일에 동시 기록하는 `log()` 헬퍼
   - GPU(CUDA) 필요 (`REQUIRE_CUDA_GPU = True`)
-  - 결과물: `buyer_name_matched.xlsx`
+  - 결과물: `output/buyer_name_matched.xlsx`(매칭 결과), `output/match.log`(실행 로그), `output/embedding_cache.pkl`(BERT 임베딩 캐시, 전부 gitignore 대상)
 - `data/` — 입력 데이터 (전부 gitignore 대상, 로컬에 직접 채워야 함)
   - `supply_case_template.xlsx` — 크롤링 결과 엑셀 서식 기준 파일
   - `transaction_data_merged.xlsx` — 기존에 수작업으로 수집한 거래데이터(6만여 건) 병합본
   - `category_reference.xlsx` — 상품분류(대/중/소) 보정용 매핑표
+
+#### 실행 방법 (sarang87/ 폴더 기준)
+
+```
+python scripts/01_crawl_supply_cases.py
+python scripts/02_match_buyer_names.py
+```
