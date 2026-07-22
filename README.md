@@ -15,7 +15,8 @@ giftco-work-archive/
    ├─ voice-data-pipeline/      # 수신/발신 통화 녹음 분석 및 시각화
    ├─ giftco-tool/              # 상품명 카테고리 라벨링/검수용 tkinter GUI 툴 모음
    ├─ giftco-order-processing/  # 조아기프트/고려기프트 발주서 수집·파싱·정리 파이프라인
-   └─ meeting-stt/              # 회의 녹음파일 STT 변환 도구 (faster-whisper, GPU)
+   ├─ meeting-stt/              # 회의 녹음파일 STT 변환 도구 (faster-whisper, GPU)
+   └─ rag-experiments/          # RAG 학습/실습 — FAQ 검색 임베딩 실험 노트북
 ```
 
 각 프로젝트 폴더 안의 `README.md`(정리 경위)와 `README_git.md`(실행 방법)를 참고하세요.
@@ -28,4 +29,4 @@ giftco-work-archive/
 
 ## Git 상태
 
-프로젝트가 정리되는 대로 하나씩 커밋합니다. 현재 giftco-supplier, voice-data-pipeline, giftco-tool, giftco-order-processing 네 프로젝트가 커밋되어 있고, meeting-stt는 아직 커밋 전 상태입니다.
+프로젝트가 정리되는 대로 하나씩 커밋합니다. 현재 giftco-supplier, voice-data-pipeline, giftco-tool, giftco-order-processing, meeting-stt, rag-experiments 여섯 프로젝트가 커밋되어 있습니다.
