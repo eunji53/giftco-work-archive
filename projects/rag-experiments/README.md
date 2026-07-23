@@ -15,4 +15,7 @@ RAG(검색증강생성) 시스템을 이해하기 위한 학습/실습 프로젝
     - `output/` — 버전별 결과 저장, 실행하면 자동 생성 (파일명에 `_v0` 등 접미사)
   - 실행 순서: v0 → v1 → v2 (v2는 v1의 임베딩 캐시를 재사용하므로 v1을 먼저 실행해야 함)
 
+- `product-recommendation/` — 상품 추천 RAG 실험 (TF-IDF → row 임베딩 검색 → profile 집계 검색 순으로 발전, v3 계획 중)
+  - `giftco_product_recommendation_v0.ipynb` ~ `v2.ipynb`, `README.md`(버전별 학습목표·문제점 상세 정리), `docs/`(문제점 및 보완방향 문서)
+  - `data/`, `cache/`, `output/` — 전부 로컬에만 존재, git에는 안 올라감
 
