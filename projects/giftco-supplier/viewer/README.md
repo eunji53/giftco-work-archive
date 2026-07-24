@@ -1,35 +1,66 @@
-# 공급사별 상품 조회 툴 사용방법
+# 공급사별 상품 조회 툴 사용방법 (v5 — 구글시트 연동 버전)
 
 아래 "기본 실행 방법"부터는 **exe 파일을 이미 만들어서 배포한 뒤**를 기준으로 합니다. exe를 아직 안 만들었다면 먼저 "0. exe 파일 만들기"부터 진행하세요.
 
+실행 파일은 `supplier_product_viewer_v5.py`입니다. 이전 버전(v1~v4)은 참고용으로 남아있을 뿐 실제로 쓰는 건 v5뿐입니다.
+
 ## 0. exe 파일 만들기 (개발자용 — 배포 전 1회만)
 
-1. PyInstaller 설치: `pip install pyinstaller` (그 외 `pandas`, `openpyxl`도 필요)
+### 0-1. 구글시트 연동 준비 (v5 신규)
+
+연락상태·등록상태·담당자는 로컬 파일이 아니라 구글시트에 저장되므로, 빌드 전에 아래를 준비해야 합니다.
+
+1. [Google Cloud Console](https://console.cloud.google.com)에서 프로젝트 생성 후 "API 및 서비스 > 라이브러리"에서 **Google Sheets API**, **Google Drive API** 사용 설정
+2. "사용자 인증 정보 > 서비스 계정" 생성 → "키" 탭에서 JSON 키 발급 → `config/google_service_account.json`으로 저장
+3. 새 구글 스프레드시트를 만들고 첫 행(헤더)에 아래 컬럼명을 순서대로 입력
+   ```
+   업체코드 | 업체명 | 담당자 | 연락여부 | 연락일자 | 연락수단 | 연락결과 | 재연락예정일 | 메모 | 등록상태 | 최종수정일시
+   ```
+4. 시트 공유 → 서비스 계정 JSON 안의 `client_email` 주소를 **편집자**로 추가
+5. `config/supplier_product_viewer_config.example.json`을 복사해 `config/supplier_product_viewer_config.json`으로 저장하고, `google_sheet_id`(시트 URL의 `/d/`와 `/edit` 사이 문자열)와 `google_worksheet_name`(하단 탭 이름)을 실제 값으로 채웁니다.
+   ```json
+   {
+     "supplier_path": "",
+     "sash_positions": {},
+     "google_service_account_path": "config/google_service_account.json",
+     "google_sheet_id": "실제 구글시트 ID",
+     "google_worksheet_name": "실제 워크시트(탭) 이름"
+   }
+   ```
+   `google_service_account.json`, `supplier_product_viewer_config.json` 두 파일은 자격증명/개인 설정이라 git에 올라가지 않도록 되어 있습니다(`.example.json`만 예시로 올라감).
+
+### 0-2. exe 빌드
+
+1. PyInstaller 설치: `pip install pyinstaller` (그 외 `pandas`, `openpyxl`, `gspread`, `google-auth`도 필요)
 2. `viewer/` 폴더에서 빌드 명령 실행:
    ```bash
    cd projects/giftco-supplier/viewer
-   pyinstaller --onefile --windowed --name supplier_product_viewer supplier_product_viewer_v4.py
+   pyinstaller --onefile --windowed --name supplier_product_viewer_구글시트연동버전 supplier_product_viewer_v5.py
    ```
-3. 빌드가 끝나면 `viewer/dist/supplier_product_viewer.exe`가 생성됩니다. (`build/` 폴더와 `.spec` 파일도 같이 생기는데, 배포에는 필요 없습니다.)
-4. **배포용 폴더 구성** — 코드가 `exe가 있는 폴더의 부모 폴더 안 data/`를 찾도록 되어 있어서 (`../data/`), **exe를 바로 최상위에 두면 안 되고 반드시 자기만의 폴더 안에** 넣어야 합니다. `data/`는 그 폴더와 같은 레벨(형제 폴더)에 둡니다:
+3. 빌드가 끝나면 `viewer/dist/` 안에 exe가 생성됩니다. (`build/` 폴더와 `.spec` 파일도 같이 생기는데, 배포에는 필요 없습니다.)
+4. **배포용 폴더 구성** — 코드가 `exe와 같은 폴더의 data/`, `config/`를 찾도록 되어 있어서, exe와 `data/`, `config/`가 같은 레벨(형제 폴더)에 있어야 합니다:
    ```
    배포폴더/
+   ├─ supplier_product_viewer_구글시트연동버전.exe
+   ├─ config/
+   │  ├─ google_service_account.json
+   │  └─ supplier_product_viewer_config.json
    ├─ data/
-   │  ├─ products_with_supplier_info.xlsx   (필수)
-   │  └─ supplier_detail_result.xlsx        (최초 실행 시 선택)
-   └─ app/                                  (폴더명은 자유 — 이 폴더 안에 exe를 넣습니다)
-      └─ supplier_product_viewer.exe
+   │  ├─ partner_goods_full_join.xlsx        (필수, 파일명 고정)
+   │  └─ 공급사_세부정보_결과.xlsx            (최초 실행 시 선택)
+   └─ 사용방법.txt
    ```
-5. 이 배포폴더를 통째로 ZIP으로 묶어 최종 사용자에게 전달하면, 아래 "기본 실행 방법"부터 그대로 따라 할 수 있습니다.
+5. 빌드 후에는 인터넷이 되는 환경에서 먼저 실행해 하단 상태줄에 "구글시트 연동됨"이 뜨는지 확인한 뒤, 이 배포폴더를 통째로 ZIP으로 묶어 전달합니다.
+6. `google_service_account.json`은 누구든 가지면 구글시트를 읽고 쓸 수 있는 자격증명입니다. 신뢰하는 팀원에게만 안전한 방법으로 전달하세요.
 
 ## 기본 실행 방법
 
-1. ZIP 파일 또는 폴더 압축을 해제합니다. (위 "0. exe 파일 만들기"의 배포폴더 구조 그대로입니다 — `exe`가 든 폴더와 `data/` 폴더가 나란히 있어야 합니다.)
-2. `supplier_product_viewer.exe`가 든 폴더의 **부모 폴더 안에 있는 `data/`** 폴더에 `products_with_supplier_info.xlsx` 파일이 있어야 합니다. (exe와 같은 폴더에 두는 게 아니라, exe가 든 폴더의 형제 폴더인 `data/`를 봅니다.)
-3. `supplier_product_viewer.exe` 파일을 실행합니다.
+1. ZIP 파일 또는 폴더 압축을 해제합니다. (위 "0. exe 파일 만들기"의 배포폴더 구조 그대로입니다 — exe와 `data/`, `config/` 폴더가 나란히 있어야 합니다.)
+2. exe와 같은 폴더의 `data/` 폴더에 `partner_goods_full_join.xlsx` 파일이 있어야 합니다.
+3. exe 파일을 실행합니다. (인터넷 연결 필요 — 연락상태/등록상태/담당자를 구글시트에서 실시간으로 불러오고 저장합니다.)
 4. 처음 실행 시 Windows 보안 안내가 표시될 수 있습니다. "Windows에서 PC를 보호했습니다", "안전하지 않음" 등의 안내가 표시되면 [추가 정보] 또는 [고급]을 누른 뒤 [실행]을 선택해 주세요.
-5. 프로그램 실행 후 공급사 파일 선택 창이 뜨면 `data/supplier_detail_result.xlsx` 파일을 선택합니다. (한 번 선택하면 다음 실행 시 자동으로 불러옵니다.)
-6. 최초 실행 시 데이터 로딩 시간이 다소 걸릴 수 있습니다. 하단 상태 표시줄에 "로딩 완료" 문구가 표시될 때까지 기다려 주세요.
+5. 프로그램 실행 후 공급사 파일 선택 창이 뜨면 `data/공급사_세부정보_결과.xlsx` 파일을 선택합니다. (한 번 선택하면 다음 실행 시 자동으로 불러옵니다.)
+6. 최초 실행 시 데이터 로딩 시간이 다소 걸릴 수 있습니다. 하단 상태 표시줄에 "로딩 완료 ... / 구글시트 연동됨" 문구가 표시될 때까지 기다려 주세요.
 
 ## 공급사 목록 조회 및 검색
 
@@ -46,20 +77,20 @@
    - 회색: 연락불가
 10. 공급사 목록 첫 번째 열 아이콘(등록상태): ○ 미등록 · ◑ 등록중 · ● 등록완료
 
-## 연락상태 관리
+## 연락상태 관리 (구글시트 실시간 공유)
 
 11. 공급사를 선택한 뒤 **연락상태** 버튼(연락완료 / 재연락필요 / 연락불가 / 미연락)을 클릭하면 해당 업체의 연락상태가 저장됩니다.
-12. 연락상태는 프로그램 폴더 안의 `공급사_연락상태.xlsx`에 자동 저장됩니다.
+12. 연락상태는 로컬 엑셀이 아니라 **구글시트에 실시간 저장**됩니다. 같은 시트를 보는 모든 사람이 같은 내용을 보고 씁니다. 다른 사람이 방금 바꾼 내용을 보려면 [전체 새로고침] 버튼을 누르세요.
 
 ## 등록상태 관리
 
 13. 공급사를 선택한 뒤 **등록상태** 버튼(● 등록완료 / ◑ 등록중 / ○ 미등록)을 클릭하면 해당 업체의 상품 등록 진행 상황이 저장됩니다.
-14. 등록상태도 `공급사_연락상태.xlsx`에 함께 저장됩니다.
+14. 등록상태도 연락상태와 마찬가지로 구글시트에 실시간 저장됩니다.
 
 ## 담당자 지정
 
 15. 공급사를 선택한 뒤 **담당자** 입력란에 이름을 입력하고 **저장** 버튼을 누르면 해당 업체에 담당자가 지정됩니다.
-16. 담당자도 `공급사_연락상태.xlsx`에 함께 저장되며, 공급사 목록 상단의 **담당자** 드롭다운에서 바로 필터링할 수 있습니다.
+16. 담당자도 구글시트에 실시간 저장되며, 공급사 목록 상단의 **담당자** 드롭다운에서 바로 필터링할 수 있습니다.
 
 ## 상품 조회
 
@@ -67,22 +98,28 @@
 18. 상품 리스트 상단의 **진열상태** 드롭다운으로 진열·단종·중지·품절·미분류별로 필터링할 수 있습니다.
 19. 상품명을 더블클릭하거나 **링크 열기** 버튼을 누르면 상품 페이지가 열립니다.
 
-## 저장 기능
+## 저장(내보내기) 기능 — 참고용 스냅샷
 
 20. **상품목록 저장**: 현재 보이는 상품 목록을 엑셀로 저장합니다.
 21. **공급사 요약 저장**: 선택한 공급사의 정보·대분류·카테고리·상품 목록을 시트별로 나눠 엑셀로 저장합니다.
-22. **연락상태 목록 저장**: 전체 공급사의 연락상태·등록상태·담당자 정보를 엑셀로 저장합니다.
+22. **연락상태 목록 저장**: 저장하는 시점의 연락상태·등록상태·담당자 정보를 엑셀로 저장합니다. (참고/보관용 스냅샷이며, 실제 최신 데이터는 구글시트에 있습니다.)
 
 ## 화면 레이아웃 조절
 
 23. 각 패널 사이의 경계선을 마우스로 드래그하면 크기를 자유롭게 조절할 수 있습니다. 조절한 크기는 프로그램을 종료해도 자동 저장되어 다음 실행 시 유지됩니다.
 
-## 참고 — 파일이 저장되는 위치 (2026-07-03 기준)
+## 오류 발생 시
 
-- `products_with_supplier_info.xlsx`: 프로그램 폴더 기준 `../data/` (자동으로 찾음, 없으면 안내 메시지 표시)
-- `supplier_detail_result.xlsx`: 최초 1회 직접 선택 (기본적으로 `../data/`를 봄). 선택한 경로는 `../data/supplier_product_viewer_config.json`에 저장되어 다음 실행 시 자동으로 불러옵니다
-- `공급사_연락상태.xlsx`: 프로그램 폴더(`viewer/`)에 그대로 저장됩니다 (crawler와 공유하는 데이터가 아니라 이 프로그램 자체의 상태 파일이라 `data/`로 옮기지 않았습니다)
+24. 저장 도중 "구글시트 연결 실패" 또는 "구글시트 저장 실패" 창이 뜨면 저장이 되지 않은 것입니다. 인터넷 연결을 확인한 뒤 다시 시도하고, 같은 오류가 반복되면 오류창에 나온 "원인" 문구를 그대로 담당자에게 알려주세요.
+
+## 참고 — 파일이 저장되는 위치 (v5 기준)
+
+- `partner_goods_full_join.xlsx`: 프로그램(exe) 폴더 기준 `data/` (자동으로 찾음, 없으면 안내 메시지 표시)
+- `공급사_세부정보_결과.xlsx`: 최초 1회 직접 선택 (기본적으로 `data/`를 봄). 선택한 경로는 `config/supplier_product_viewer_config.json`에 저장되어 다음 실행 시 자동으로 불러옵니다
+- 연락상태·등록상태·담당자: **구글시트**에 저장 (로컬 파일에 저장하지 않음)
+- `data/공급사_연락상태_{YYYYMMDD}.xlsx`: 저장할 때마다 남는 그날의 전체 상태 로컬 백업. 프로그램이 다시 읽어들이지 않는 참고/비상용 스냅샷입니다.
+- `config/google_service_account.json`, `config/supplier_product_viewer_config.json`: 구글시트 연동 자격증명/설정 (git에 올라가지 않음. 예시는 `config/supplier_product_viewer_config.example.json` 참고)
 
 ## 문의
 
-24. 사용 중 오류가 발생하거나 추가로 필요한 기능이 있으면 말씀 부탁드립니다.
+25. 사용 중 오류가 발생하거나 추가로 필요한 기능이 있으면 말씀 부탁드립니다.

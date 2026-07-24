@@ -1,0 +1,7 @@
+{
+  "supplier_path": "",
+  "sash_positions": {},
+  "google_service_account_path": "config/google_service_account.json",
+  "google_sheet_id": "여기에 구글시트 ID 입력 (시트 URL의 /d/ 와 /edit 사이 문자열)",
+  "google_worksheet_name": "여기에 실제 워크시트(탭) 이름 입력"
+}

@@ -18,10 +18,15 @@ giftco-supplier/
    ├─ supplier_product_viewer_v1.py
    ├─ supplier_product_viewer_v2.py
    ├─ supplier_product_viewer_v3.py
-   └─ supplier_product_viewer_v4.py
+   ├─ supplier_product_viewer_v4.py
+   ├─ supplier_product_viewer_v5.py    # 최신, 구글시트 연동 버전 (viewer/README.md 참고)
+   ├─ data/                            # v5 전용 입력 폴더 (아래 참고)
+   └─ config/                          # v5 전용 구글시트 연동 설정 (viewer/README.md 참고)
 ```
 
-**모든 경로는 `../data/` 기준입니다.** `crawler/`의 노트북·스크립트는 `../data/`(즉 `giftco-supplier/data/`)에 결과를 저장하고, `viewer/`의 4개 파일도 같은 `../data/`를 읽습니다. 파일을 직접 옮길 필요가 없습니다 — crawler 실행 후 바로 viewer를 실행하면 됩니다.
+**v1~v4는 `../data/` 기준입니다.** `crawler/`의 노트북·스크립트는 `../data/`(즉 `giftco-supplier/data/`)에 결과를 저장하고, `viewer/`의 v1~v4는 같은 `../data/`를 읽습니다. 파일을 직접 옮길 필요가 없습니다 — crawler 실행 후 바로 v1~v4를 실행하면 됩니다.
+
+**v5(최신, 구글시트 연동 버전)는 다릅니다.** `viewer/data/`라는 별도 폴더를 보며, 파일명도 `partner_goods_full_join.xlsx`, `공급사_세부정보_결과.xlsx`로 다릅니다. crawler는 여전히 `giftco-supplier/data/`에만 저장하므로, **v5를 쓰려면 crawler 결과를 `viewer/data/`로 수동 복사**해야 합니다 (자동 연동 아님). 자세한 내용은 `viewer/README.md` 참고.
 
 ## 0. 환경 준비
 
@@ -76,6 +81,7 @@ RUN_STAGE3_JOIN = True           # 조인(상품조회툴 입력 파일 생성)
 | `giftco_supplier_crawler.py` | 없음 (01+02를 순서대로 실행) | 위 3개 파일 전부 |
 | `03_analyze_data.ipynb` | `../data/supplier_detail_result.xlsx`, `../data/partner_goods_full.xlsx`, (있으면) `../data/products_with_supplier_info.xlsx` | 없음 (화면 출력) |
 | `viewer/supplier_product_viewer_v4.py` | `../data/products_with_supplier_info.xlsx`, `../data/supplier_detail_result.xlsx` | 실행 중 GUI에서 조회 |
+| `viewer/supplier_product_viewer_v5.py` | `viewer/data/partner_goods_full_join.xlsx`, `viewer/data/공급사_세부정보_결과.xlsx` (⚠️ `../data/`가 아니라 `viewer/data/` — crawler 결과를 수동 복사해야 함, 아래 "5-1" 참고) | 실행 중 GUI에서 조회, 연락상태/등록상태/담당자는 구글시트에 저장 |
 
 모든 크롤링/조인 결과 엑셀은 `.gitignore`(`*.xlsx`)에 의해 git에는 올라가지 않습니다. 실제 업체 연락처·사업자번호가 담기므로 커밋하지 마세요.
 
@@ -102,12 +108,27 @@ python supplier_product_viewer_v4.py
 
 `../data/products_with_supplier_info.xlsx`가 있어야 자동으로 열리고, `supplier_detail_result.xlsx`는 실행 후 GUI에서 "공급사 파일 선택/재로드" 버튼으로 직접 선택합니다 (기본으로 `../data/`를 보되, 다른 위치를 선택할 수도 있습니다).
 
-### 버전 히스토리 (2026-07-03 정리)
+## 5-1. viewer v5 실행 (구글시트 연동 버전, 최신)
+
+v5는 v1~v4와 별도 폴더(`viewer/data/`, `viewer/config/`)를 쓰고, 연락상태/등록상태/담당자를 로컬 파일 대신 구글시트에 저장합니다.
+
+1. crawler 결과 중 필요한 두 파일을 `giftco-supplier/data/`에서 `viewer/data/`로 **수동 복사**하고, 아래 이름으로 둡니다 (자동 연동 아님, crawler가 이 폴더에 직접 쓰지 않습니다).
+   - `viewer/data/partner_goods_full_join.xlsx`
+   - `viewer/data/공급사_세부정보_결과.xlsx`
+2. 구글시트 연동 설정(서비스 계정 키, 시트 ID 등)과 실행/빌드 방법은 `viewer/README.md`, 최종 사용자 안내는 `viewer/사용방법.txt`를 참고하세요.
+
+```bash
+cd projects/giftco-supplier/viewer
+python supplier_product_viewer_v5.py
+```
+
+### 버전 히스토리 (2026-07-24 갱신)
 
 | 단계 | 대표 파일 | 실제로 달라진 것 (diff 근거) |
 |---|---|---|
 | 1단계 | `supplier_product_viewer_v1.py` | 최초 버전. 조인 파일(`products_with_supplier_info.xlsx`) 하나만 있으면 동작 |
 | 2단계 | `supplier_product_viewer_v2.py` | v1 대비 **가장 큰 변화**: 공급사 파일(`supplier_detail_result.xlsx`)을 별도로 받는 2파일 체계로 전환. 이후 레이아웃 고정, 카테고리/대분류 표시, 미분류 제외, 상품 검색/필터, 긴 텍스트 줄바꿈 등 수정 |
 | 3단계 | `supplier_product_viewer_v3.py` | 신규 기능 : 설정 저장/불러오기(`load_config`/`save_config`), 공급사별 연락 상태 관리(`update_contact_status` 등), PyInstaller exe 빌드 지원 |
-| 4단계 (최신) | `supplier_product_viewer_v4.py` | 신규 기능: 담당자(매니저) 배정(`update_manager`), 상품 등록상태 관리(`update_product_status`), 창 분할 위치 저장/복원(`_apply_sash`) |
+| 4단계 | `supplier_product_viewer_v4.py` | 신규 기능: 담당자(매니저) 배정(`update_manager`), 상품 등록상태 관리(`update_product_status`), 창 분할 위치 저장/복원(`_apply_sash`) |
+| 5단계 (최신) | `supplier_product_viewer_v5.py` | v4를 최소 수정: 연락상태/등록상태/담당자 저장소를 로컬 `공급사_연락상태.xlsx`에서 **구글시트**로 교체 (행 단위 upsert, 연동 실패 시 저장 중단). 데이터 폴더도 `../data/`가 아닌 전용 `viewer/data/`, `viewer/config/`로 분리. 자세한 내용은 `viewer/README.md` 참고 |
 
